@@ -1,0 +1,33 @@
+services:
+  barshop_db:
+    image: postgres:15
+    container_name: barshop_db
+    environment:
+      POSTGRES_DB: barshop
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: nikolozi12
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  barshop_api:
+    build: .
+    container_name: barshop_api
+    depends_on:
+      barshop_db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:nikolozi12@barshop_db:5432/barshop
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
