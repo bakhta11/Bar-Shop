@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Form
 from sqlmodel import Session
 from app.db import get_session
 from app.crud.users import get_user_by_email, create_user
@@ -21,18 +21,22 @@ def register(user_in: UserCreate, session: Session = Depends(get_session)):
         raise HTTPException(status_code=400, detail="Email already registered")
     user = create_user(session, user_in.email, user_in.password)
     token = auth.create_access_token({"sub": str(user.id)})
-    return {"access_token": token}
+    return {"access_token": token, "token_type": "bearer"}
 
 
 @router.post("/login", response_model=Token)
-def login(form_data: UserCreate, session: Session = Depends(get_session)):
-    user = get_user_by_email(session, form_data.email)
+def login(
+    username: str = Form(...),
+    password: str = Form(...),
+    session: Session = Depends(get_session)
+):
+    user = get_user_by_email(session, username)
     if not user or not auth.verify_password(
-        form_data.password, user.hashed_password
+        password, user.hashed_password
     ):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = auth.create_access_token({"sub": str(user.id)})
-    return {"access_token": token}
+    return {"access_token": token, "token_type": "bearer"}
 
 
 reset_tokens = {}

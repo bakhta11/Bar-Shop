@@ -2,15 +2,14 @@ from datetime import datetime, timedelta
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from typing import Optional
+import os
 
-SECRET_KEY = "change_this_secret_for_prod"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
+SECRET_KEY = os.getenv("SECRET_KEY", "change_this_secret_for_prod")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "10080"))
 
-# FIXED:
-# Use bcrypt_sha256 → solves 72-byte password limit and bcrypt backend issue
 pwd_context = CryptContext(
-    schemes=["bcrypt_sha256"],
+    schemes=["bcrypt"],
     deprecated="auto"
 )
 
